@@ -194,16 +194,18 @@ const ALLITEMS=[
  {k:'lav',n:'Lavadero',g:'Exteriores'},{k:'rej',n:'Pintura reja',g:'Exteriores'},
  {k:'htu',n:'Tubo gabinete',g:'Hojalatería'},{k:'hga',n:'Gabinete',g:'Hojalatería'},{k:'htg',n:'Techo gas',g:'Hojalatería'},{k:'htc',n:'Techo cocina',g:'Hojalatería'},
  {k:'gca',n:'Calefont',g:'Gas'},{k:'gga',n:'Gas',g:'Gas'},{k:'gco',n:'Cocina',g:'Gas'},
- {k:'rb1',n:'Lavamanos baño 1',g:'Grifería'},{k:'rb2',n:'Lavamanos baño 2',g:'Grifería'},{k:'rdu',n:'Ducha baño 1',g:'Grifería'},{k:'rco',n:'Cocina',g:'Grifería'}
+ {k:'rb1',n:'Lavamanos baño 1',g:'Grifería'},{k:'rb2',n:'Lavamanos baño 2',g:'Grifería'},{k:'rdu',n:'Ducha baño 1',g:'Grifería'},{k:'rco',n:'Cocina',g:'Grifería'},
+ {k:'pp1',n:'Pintura ext. 1er piso',g:'Exteriores'},{k:'psi',n:'Pintura siding',g:'Exteriores'},{k:'rsi',n:'Reparación siding',g:'Exteriores'},{k:'des',n:'Desmalezado',g:'Exteriores'}
 ];
+const sp=s=>String(s).padEnd(ALLITEMS.length,'F').split('');
 const ITEMS=ALLITEMS.filter(it=>it.g!=='Grifería');
 const KIDX=Object.fromEntries(ALLITEMS.map((it,i)=>[it.k,i]));
 const VIDX=ITEMS.map(it=>KIDX[it.k]);
 const GROUPS=['Exteriores','Hojalatería','Gas'];
 const label=it=>(it.g==='Exteriores'?'':it.g+' · ')+it.n;
 // Calendario: base = pendientes del levantamiento de Calidad al inicio
-const BASE={"med": 168, "nic": 165, "niv": 262, "cam": 71, "rad": 72, "pas": 78, "lav": 80, "rej": 257, "htu": 10, "hga": 2, "htg": 7, "htc": 44, "gca": 247, "gga": 250, "gco": 189, "rb1": 95, "rb2": 24, "rdu": 147, "rco": 129};
-const START={}; ALLITEMS.forEach((it,i)=>START[it.k]= i<8?'2026-10-19':'2026-11-09');
+const BASE={"med": 168, "nic": 165, "niv": 262, "cam": 71, "rad": 72, "pas": 78, "lav": 80, "rej": 257, "htu": 10, "hga": 2, "htg": 7, "htc": 44, "gca": 247, "gga": 250, "gco": 189, "rb1": 95, "rb2": 24, "rdu": 147, "rco": 129, "pp1": 258, "psi": 33, "rsi": 24, "des": 183};
+const START={}; ALLITEMS.forEach((it,i)=>START[it.k]= i<8?'2026-10-19':(i>=19?'2026-11-03':'2026-11-09'));
 const GOAL='2026-12-22';
 const HOL=['2026-10-31','2026-11-01','2026-12-08','2026-12-25'];
 const MZORD=['A-1','A-2','A-3','A-4','A-5','A-6','A-7','A-8','A-9','A-10','A-11','A-12','A-13','A-14','A-15'];
@@ -216,7 +218,7 @@ function savePending(){lsSet('pending',PENDING);updatePendBar()}
 const $=id=>document.getElementById(id);
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2600)}
 const isPend=s=>s==='F'||s==='S'||s==='B';
-function loadSeed(){LOTS={};SEED.forEach(([l,m,s])=>LOTS[l]={m,s:s.split('')})}
+function loadSeed(){LOTS={};SEED.forEach(([l,m,s])=>LOTS[l]={m,s:sp(s)})}
 function lsGet(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 
@@ -261,18 +263,18 @@ function rescueDemo(){ // cambios que quedaron guardados solo en este navegador 
 async function loadAll(){
   if(IS_DEMO){
     mode='demo'; loadSeed();
-    const d=lsGet('demo_state',null); if(d) Object.keys(d).forEach(l=>{if(LOTS[l])LOTS[l].s=d[l].split('')});
+    const d=lsGet('demo_state',null); if(d) Object.keys(d).forEach(l=>{if(LOTS[l])LOTS[l].s=sp(d[l])});
     HIST=lsGet('demo_hist',[]);
     setSync('demo','Modo demostración (sin Google Sheet)'); return;
   }
   try{
     const [j,h]=await Promise.all([api({action:'getState'}),api({action:'getHistorial'})]);
-    LOTS={}; j.rows.forEach(([l,m,s])=>LOTS[l]={m,s:s.split('')});
+    LOTS={}; j.rows.forEach(([l,m,s])=>LOTS[l]={m,s:sp(s)});
     HIST=h.rows||[];
     lsSet('last_state',{rows:j.rows,hist:HIST,t:Date.now()});
     mode='live'; const rn=rescueDemo(); if(rn) toast(rn+' cambios recuperados de este navegador: ingresa con tu PIN para enviarlos'); applyPending(); setSync('on','Sincronizado '+new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}));
   }catch(e){ mode='err'; const c=lsGet('last_state',null);
-    if(c&&c.rows&&c.rows.length>200){LOTS={};c.rows.forEach(([l,m,s])=>LOTS[l]={m,s:s.split('')});HIST=c.hist||[];setSync('err','Sin conexión con el Sheet: reintentando…')}
+    if(c&&c.rows&&c.rows.length>200){LOTS={};c.rows.forEach(([l,m,s])=>LOTS[l]={m,s:sp(s)});HIST=c.hist||[];setSync('err','Sin conexión con el Sheet: reintentando…')}
     else{loadSeed();setSync('err','Sin conexión con el Sheet: reintentando…')}
     applyPending(); }
 }
@@ -343,7 +345,7 @@ function paint(){
     rect.style.fill=f;txt.style.fill=tc;HG[l].classList.toggle('sel',sel===+l);HG[l].classList.toggle('pick',PICK.has(+l))}
   const lg=$('legend');
   if(!filter)lg.innerHTML=[['--h0','Sin pendientes'],['--h1','1 a 3'],['--h2','4 a 6'],['--h3','7 a 9'],['--h4','10 o más']].map(([c,t])=>`<span><i class="sw" style="background:var(${c})"></i>${t}</span>`).join('')+'<span>· pendientes por casa (todas las partidas)</span>';
-  else{const it=ALLITEMS[KIDX[filter]];let L=[['--ok','Lista'],['--falta','Falta']];if(filter==='cam')L=[['--ok','OK'],['--subir','Subir'],['--bajar','Bajar']];if(filter==='rad')L.push(['--nc','No corresponde']);
+  else{const it=ALLITEMS[KIDX[filter]];let L=[['--ok','Lista'],['--falta','Falta']];if(filter==='cam')L=[['--ok','OK'],['--subir','Subir'],['--bajar','Bajar']];if(Object.values(LOTS).some(x=>x.s[KIDX[filter]]==='N'))L.push(['--nc','No corresponde']);
     lg.innerHTML=`<span><b>${label(it)}</b></span>`+L.map(([c,t])=>`<span><i class="sw" style="background:var(${c})"></i>${t}</span>`).join('')}
 }
 
@@ -524,14 +526,14 @@ function renderAll(){renderPlano();drawAvance();drawCal();drawMz();drawHist()}
 
 (async()=>{filter=lsGet('filter',null);if(filter&&!ITEMS.some(it=>it.k===filter))filter=null;drawPlan();
   const c=lsGet('last_state',null);
-  if(c&&c.rows&&c.rows.length>200&&SCRIPT_URL){LOTS={};c.rows.forEach(([l,m,s])=>LOTS[l]={m,s:s.split('')});HIST=c.hist||[];renderAll();
+  if(c&&c.rows&&c.rows.length>200&&SCRIPT_URL){LOTS={};c.rows.forEach(([l,m,s])=>LOTS[l]={m,s:sp(s)});HIST=c.hist||[];renderAll();
     setSync('','Actualizando… (datos del '+new Date(c.t).toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+')')}
   else{$('panel').innerHTML='<h2>Cargando datos…</h2><p class="sub">Conectando con el Google Sheet. Tarda unos segundos la primera vez.</p>';$('kpis').innerHTML=kp('…','Viviendas')+kp('…','Casas sin pendientes')+kp('…','Trabajos pendientes')+kp('…','Avance')+kp('…','Desvío');document.body.classList.add('loading')}
   await loadAll();document.body.classList.remove('loading');renderAll();
   updatePendBar();
   if(!IS_DEMO)setInterval(async()=>{ if(flushing)return;
     if(mode!=='live'){await loadAll();renderAll();updatePendBar();flushPending();return}
-    try{const j=await api({action:'getState'});LOTS={};j.rows.forEach(([l,m,s])=>LOTS[l]={m,s:s.split('')});applyPending();lsSet('last_state',{rows:j.rows,hist:HIST,t:Date.now()});renderAll();setSync('on','Sincronizado '+new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}))}
+    try{const j=await api({action:'getState'});LOTS={};j.rows.forEach(([l,m,s])=>LOTS[l]={m,s:sp(s)});applyPending();lsSet('last_state',{rows:j.rows,hist:HIST,t:Date.now()});renderAll();setSync('on','Sincronizado '+new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}))}
     catch(e){setSync('err','Sin conexión con el Sheet: reintentando…')} },mode==='live'?60000:20000)})();
 </script>
 </body>
