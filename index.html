@@ -173,7 +173,7 @@ svg text{font-family:var(--font)}
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwG2LpCJbmnHKGnwMbkWE_QwZ0b2dlp4i3WKCuCX-9yNrN0-oaRB9-VLX2ptY6r8Ac7/exec';   // URL del deployment de Apps Script. Si queda vacío, la app corre en modo demostración.
 /* ============================================================= */
 
-const ITEMS=[
+const ALLITEMS=[
  {k:'med',n:'Medidor',g:'Exteriores'},{k:'nic',n:'Nicho medidor',g:'Exteriores'},{k:'niv',n:'Nivelación patio',g:'Exteriores'},
  {k:'cam',n:'Cámara UD',g:'Exteriores'},{k:'rad',n:'Radier acceso',g:'Exteriores'},{k:'pas',n:'Pastelón',g:'Exteriores'},
  {k:'lav',n:'Lavadero',g:'Exteriores'},{k:'rej',n:'Pintura reja',g:'Exteriores'},
@@ -181,12 +181,14 @@ const ITEMS=[
  {k:'gca',n:'Calefont',g:'Gas'},{k:'gga',n:'Gas',g:'Gas'},{k:'gco',n:'Cocina',g:'Gas'},
  {k:'rb1',n:'Lavamanos baño 1',g:'Grifería'},{k:'rb2',n:'Lavamanos baño 2',g:'Grifería'},{k:'rdu',n:'Ducha baño 1',g:'Grifería'},{k:'rco',n:'Cocina',g:'Grifería'}
 ];
-const KIDX=Object.fromEntries(ITEMS.map((it,i)=>[it.k,i]));
-const GROUPS=['Exteriores','Hojalatería','Gas','Grifería'];
+const ITEMS=ALLITEMS.filter(it=>it.g!=='Grifería');
+const KIDX=Object.fromEntries(ALLITEMS.map((it,i)=>[it.k,i]));
+const VIDX=ITEMS.map(it=>KIDX[it.k]);
+const GROUPS=['Exteriores','Hojalatería','Gas'];
 const label=it=>(it.g==='Exteriores'?'':it.g+' · ')+it.n;
 // Calendario: base = pendientes del levantamiento de Calidad al inicio
 const BASE={"med": 168, "nic": 165, "niv": 262, "cam": 71, "rad": 72, "pas": 78, "lav": 80, "rej": 257, "htu": 10, "hga": 2, "htg": 7, "htc": 44, "gca": 247, "gga": 250, "gco": 189, "rb1": 95, "rb2": 24, "rdu": 147, "rco": 129};
-const START={}; ITEMS.forEach((it,i)=>START[it.k]= i<8?'2026-10-19':'2026-11-09');
+const START={}; ALLITEMS.forEach((it,i)=>START[it.k]= i<8?'2026-10-19':'2026-11-09');
 const GOAL='2026-12-22';
 const HOL=['2026-10-31','2026-11-01','2026-12-08','2026-12-25'];
 const MZORD=['A-1','A-2','A-3','A-4','A-5','A-6','A-7','A-8','A-9','A-10','A-11','A-12','A-13','A-14','A-15'];
@@ -227,7 +229,7 @@ function setSync(c,t){$('dot').className='dot '+c;$('synctxt').textContent=t}
 /* ---------- conteos ---------- */
 function pendCount(k){const i=KIDX[k];return Object.values(LOTS).filter(L=>isPend(L.s[i])).length}
 function appCount(k){const i=KIDX[k];return Object.values(LOTS).filter(L=>L.s[i]!=='N').length}
-function lotPend(l){return LOTS[l].s.filter(isPend).length}
+function lotPend(l){return VIDX.filter(i=>isPend(LOTS[l].s[i])).length}
 function d2s(d){return d.toISOString().slice(0,10)}
 function workdays(from,to){const r=[];let d=new Date(from+'T12:00:00');const e=new Date(to+'T12:00:00');while(d<=e){const s=d2s(d);if(d.getDay()>0&&d.getDay()<6&&!HOL.includes(s))r.push(s);d.setDate(d.getDate()+1)}return r}
 function today(){const n=new Date();return d2s(new Date(n.getFullYear(),n.getMonth(),n.getDate(),12))}
@@ -289,7 +291,7 @@ function paint(){
     rect.style.fill=f;txt.style.fill=tc;HG[l].classList.toggle('sel',sel===+l)}
   const lg=$('legend');
   if(!filter)lg.innerHTML=[['--h0','Sin pendientes'],['--h1','1 a 3'],['--h2','4 a 6'],['--h3','7 a 9'],['--h4','10 o más']].map(([c,t])=>`<span><i class="sw" style="background:var(${c})"></i>${t}</span>`).join('')+'<span>· pendientes por casa (todas las partidas)</span>';
-  else{const it=ITEMS[KIDX[filter]];let L=[['--ok','Lista'],['--falta','Falta']];if(filter==='cam')L=[['--ok','OK'],['--subir','Subir'],['--bajar','Bajar']];if(filter==='rad')L.push(['--nc','No corresponde']);
+  else{const it=ALLITEMS[KIDX[filter]];let L=[['--ok','Lista'],['--falta','Falta']];if(filter==='cam')L=[['--ok','OK'],['--subir','Subir'],['--bajar','Bajar']];if(filter==='rad')L.push(['--nc','No corresponde']);
     lg.innerHTML=`<span><b>${label(it)}</b></span>`+L.map(([c,t])=>`<span><i class="sw" style="background:var(${c})"></i>${t}</span>`).join('')}
 }
 
@@ -299,11 +301,11 @@ function drawKpis(){
   if(!filter){
     const tot=Object.keys(LOTS).length, listas=Object.keys(LOTS).filter(l=>lotPend(l)===0).length;
     const pend=Object.keys(LOTS).reduce((s,l)=>s+lotPend(l),0);
-    const base=Object.values(BASE).reduce((a,b)=>a+b,0);
+    const base=ITEMS.reduce((a,it)=>a+BASE[it.k],0);
     const meta=ITEMS.reduce((s,it)=>s+metaAt(it.k,t),0), hec=ITEMS.reduce((s,it)=>s+hecho(it.k),0);
     $('kpis').innerHTML=kp(tot,'Viviendas')+kp(listas,'Casas sin pendientes','good')+kp(pend,'Trabajos pendientes')+kp(Math.round(100*(base-pend)/base)+'%','Avance desde el levantamiento')+kp((hec-meta>0?'+':'')+(hec-meta),'Desvío vs meta a hoy',hec-meta<0?'warn':'good');
   }else{
-    const it=ITEMS[KIDX[filter]],p=pendCount(filter),ap=appCount(filter),m=metaAt(filter,t),h=hecho(filter);
+    const it=ALLITEMS[KIDX[filter]],p=pendCount(filter),ap=appCount(filter),m=metaAt(filter,t),h=hecho(filter);
     const rest=workdays(t>START[filter]?t:START[filter],GOAL).length;
     $('kpis').innerHTML=kp(ap-p+'/'+ap,label(it)+': listas')+kp(p,'Pendientes','warn')+kp(Math.round(100*(ap-p)/ap)+'%','Avance')+kp(m,'Meta a hoy (terminadas)')+kp((h-m>0?'+':'')+(h-m),'Desvío',h-m<0?'warn':'good')+kp(rest?(p/rest).toFixed(1).replace('.',','):'—','Casas/día necesarias');
   }
@@ -342,7 +344,7 @@ function topLots(){return Object.keys(LOTS).sort((a,b)=>lotPend(b)-lotPend(a)).s
 async function setItem(l,k,v){
   const i=KIDX[k],prev=LOTS[l].s[i];LOTS[l].s[i]=v;renderAll();
   if(mode==='demo'){const d={};for(const x in LOTS)d[x]=LOTS[x].s.join('');lsSet('demo_state',d);toast('Guardado (demostración)');return}
-  try{await api({action:'setItem',lote:l,item:k,valor:v,pin,user});toast(`Casa ${l}: ${ITEMS[i].n} → ${v==='C'?'lista':v==='F'?'falta':v==='S'?'subir':'bajar'}`)}
+  try{await api({action:'setItem',lote:l,item:k,valor:v,pin,user});toast(`Casa ${l}: ${ALLITEMS[i].n} → ${v==='C'?'lista':v==='F'?'falta':v==='S'?'subir':'bajar'}`)}
   catch(e){LOTS[l].s[i]=prev;renderAll();toast('No se pudo guardar: '+e.message)}
 }
 
@@ -373,7 +375,7 @@ function drawCal(){
   const ti=days.indexOf(t);if(ti>=0)s+=`<line x1="${X(ti)}" x2="${X(ti)}" y1="${mt}" y2="${mt+ih}" stroke="#CF4A2A" stroke-width="1"/><text x="${X(ti)+4}" y="${mt+ih-6}" font-size="11" fill="#CF4A2A">Hoy</text>`;
   s+=`<g font-size="12"><rect x="${ml}" y="10" width="12" height="4" fill="#E18426"/><text x="${ml+18}" y="16">Meta acumulada</text><rect x="${ml+130}" y="10" width="12" height="4" fill="#1A1846"/><text x="${ml+148}" y="16">Real (cierres del día)</text></g>`;
   $('chart').innerHTML=s;
-  const it=ITEMS[KIDX[k]];$('calinfo').textContent=`${BASE[k]} casas pendientes al inicio (${START[k].split('-').reverse().join('-')}) · ${N} días hábiles al 22-12 · ${(BASE[k]/N).toFixed(1).replace('.',',')} casas/día`;
+  const it=ALLITEMS[KIDX[k]];$('calinfo').textContent=`${BASE[k]} casas pendientes al inicio (${START[k].split('-').reverse().join('-')}) · ${N} días hábiles al 22-12 · ${(BASE[k]/N).toFixed(1).replace('.',',')} casas/día`;
   // tabla semanal
   const wk={};days.forEach(d=>{const dt=new Date(d+'T12:00');const mon=new Date(dt);mon.setDate(dt.getDate()-((dt.getDay()+6)%7));const key=d2s(mon);(wk[key]=wk[key]||[]).push(d)});
   let h='<thead><tr><th>Semana</th><th>Desde</th><th>Hasta</th><th>Días hábiles</th><th>Meta semana</th><th>Meta acumulada</th><th>Real acumulado</th><th>Desvío</th></tr></thead><tbody>';let n=1;
@@ -434,7 +436,7 @@ $('calsel').onchange=drawCal;$('histmode').onchange=drawHist;$('histval').onchan
 function renderPlano(){drawPicker();drawKpis();paint();renderPanel()}
 function renderAll(){renderPlano();drawAvance();drawCal();drawMz();drawHist()}
 
-(async()=>{filter=lsGet('filter',null);if(filter&&KIDX[filter]==null)filter=null;drawPlan();
+(async()=>{filter=lsGet('filter',null);if(filter&&!ITEMS.some(it=>it.k===filter))filter=null;drawPlan();
   const c=lsGet('last_state',null);
   if(c&&SCRIPT_URL){LOTS={};c.rows.forEach(([l,m,s])=>LOTS[l]={m,s:s.split('')});HIST=c.hist||[];renderAll();
     setSync('','Actualizando… (datos del '+new Date(c.t).toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+')')}
