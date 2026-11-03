@@ -96,6 +96,18 @@ select{padding:6px 10px;border:1px solid var(--line);border-radius:6px;backgroun
 .toast.show{display:block}
 .mzcell{cursor:pointer}
 .mzcell:hover{outline:2px solid var(--naranjo)}
+[hidden]{display:none!important}
+.house.pick rect{stroke:#1A1846;stroke-width:3;stroke-dasharray:3 2}
+.house.pick text{text-decoration:underline}
+.mzlbl{cursor:pointer}
+.mzlbl:hover{fill:#E18426}
+.selbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#1A1846;color:#fff;border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.selbar .btn{padding:6px 12px}
+.selbar .btn.ok{background:#2F9E6E;color:#fff}
+.selbar .btn.no{background:#CF4A2A;color:#fff}
+.selbar .btn.lt{background:transparent;border:1px solid #6d6b9a;color:#fff}
+.selbar b{color:#E18426}
+.selhint{font-size:.82rem;color:#c9c7dd;flex-basis:100%}
 .pendbar{background:#fff4e0;border:1px solid var(--naranjo);border-radius:8px;padding:10px 12px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .note{font-size:.8rem;color:var(--muted);margin-top:8px}
 #tavance a{color:var(--azul);font-weight:600;text-decoration:none;border-bottom:1px dotted var(--naranjo)}
@@ -124,6 +136,7 @@ svg text{font-family:var(--font)}
     <div class="picker" id="picker"></div>
     <div class="layout">
       <div class="card">
+        <div class="selbar" id="selbar" hidden></div>
         <div class="legend" id="legend"></div>
         <svg id="plan" role="img" aria-label="Plano del loteo"></svg>
       </div>
@@ -198,7 +211,7 @@ const SEED=[[1,"A-1","CCFSNCCCCCCCCCCCCCC"],[2,"A-1","CCFSNCCCCCCCCCCCCCC"],[3,"
 
 let LOTS={}, HIST=[], filter=null, sel=null, user=null, pin=null, mode='loading';
 const IS_DEMO=!SCRIPT_URL;
-let PENDING=lsGet('pending',[]), flushing=false;
+let PENDING=lsGet('pending',[]), flushing=false, MANY=null;
 function savePending(){lsSet('pending',PENDING);updatePendBar()}
 const $=id=>document.getElementById(id);
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2600)}
@@ -225,7 +238,13 @@ async function flushPending(){
   if(flushing||!PENDING.length||!user||mode!=='live')return updatePendBar();
   flushing=true;updatePendBar();let ok=0;
   while(PENDING.length){const p=PENDING[0];
-    try{await api({action:'setItem',lote:p.l,item:p.k,valor:p.v,pin,user});PENDING.shift();savePending();ok++}
+    let grp=[];for(const q of PENDING){if(q.k===p.k&&q.v===p.v&&grp.length<60)grp.push(q);else break}
+    try{
+      if(grp.length>1&&MANY!==false){
+        try{await api({action:'setMany',lotes:grp.map(q=>q.l).join(','),item:p.k,valor:p.v,pin,user},45000);MANY=true}
+        catch(e){if(/no reconocida/.test(e.message)){MANY=false;continue}throw e}
+        PENDING.splice(0,grp.length);savePending();ok+=grp.length}
+      else{await api({action:'setItem',lote:p.l,item:p.k,valor:p.v,pin,user});PENDING.shift();savePending();ok++}}
     catch(e){toast('Se detuvo el envío: '+e.message);break}}
   flushing=false;updatePendBar();if(ok)toast(ok+' cambio'+(ok>1?'s':'')+' enviado'+(ok>1?'s':'')+' al Sheet');
 }
@@ -309,10 +328,10 @@ function drawPlan(){
   for(const l in H){const r=H[l];const g=el('g',{class:'house',tabindex:0,role:'button','aria-label':'Casa '+l},svg);
     el('rect',{x:r.x+.6,y:r.y+.6,width:r.w-1.2,height:r.h-1.2,rx:1.5},g);
     const fs=Math.min(9,r.h*.62,r.w*.36);el('text',{x:r.x+r.w/2,y:r.y+r.h/2+fs*.36,'text-anchor':'middle','font-size':fs.toFixed(1),'font-weight':700},g).textContent=l;
-    g.onclick=()=>selectLot(+l);g.onkeydown=e=>{if(e.key==='Enter'){selectLot(+l)}};HG[l]=g}
+    g.onclick=()=>houseClick(+l);g.onkeydown=e=>{if(e.key==='Enter'){houseClick(+l)}};HG[l]=g}
   for(const m in MZB){const b=MZB[m];if(b.w>100){
-      const t=el('text',{x:b.x+b.w/2,y:b.y-4,'text-anchor':'middle','font-size':11,'font-weight':800,fill:'#1A1846'},svg);t.textContent=m;
-    }else{el('text',{x:b.x+b.w/2,y:b.y-6,'text-anchor':'middle','font-size':11,'font-weight':800,fill:'#1A1846'},svg).textContent=m}}
+      const t=el('text',{class:'mzlbl',x:b.x+b.w/2,y:b.y-4,'text-anchor':'middle','font-size':11,'font-weight':800,fill:'#1A1846'},svg);t.textContent=m;t.onclick=()=>pickMz(m);
+    }else{const t=el('text',{class:'mzlbl',x:b.x+b.w/2,y:b.y-6,'text-anchor':'middle','font-size':11,'font-weight':800,fill:'#1A1846'},svg);t.textContent=m;t.onclick=()=>pickMz(m)}}
 }
 const HEAT=['--h0','--h1','--h2','--h3','--h4'];
 function bucket(n){return n===0?0:n<=3?1:n<=6?2:n<=9?3:4}
@@ -321,7 +340,7 @@ function paint(){
   for(const l in HG){const L=LOTS[l];const rect=HG[l].firstChild,txt=HG[l].lastChild;let f,tc='#fff';
     if(!filter){const b=bucket(lotPend(l));f=css.getPropertyValue(HEAT[b]);tc=(b===1||b===2)?'#2e1503':'#fff'}
     else{const s=L.s[KIDX[filter]];f={C:'--ok',F:'--falta',S:'--subir',B:'--bajar',N:'--nc'}[s];f=css.getPropertyValue(f);tc=(s==='S')?'#3b2400':(s==='N'?'#777':'#fff')}
-    rect.style.fill=f;txt.style.fill=tc;HG[l].classList.toggle('sel',sel===+l)}
+    rect.style.fill=f;txt.style.fill=tc;HG[l].classList.toggle('sel',sel===+l);HG[l].classList.toggle('pick',PICK.has(+l))}
   const lg=$('legend');
   if(!filter)lg.innerHTML=[['--h0','Sin pendientes'],['--h1','1 a 3'],['--h2','4 a 6'],['--h3','7 a 9'],['--h4','10 o más']].map(([c,t])=>`<span><i class="sw" style="background:var(${c})"></i>${t}</span>`).join('')+'<span>· pendientes por casa (todas las partidas)</span>';
   else{const it=ALLITEMS[KIDX[filter]];let L=[['--ok','Lista'],['--falta','Falta']];if(filter==='cam')L=[['--ok','OK'],['--subir','Subir'],['--bajar','Bajar']];if(filter==='rad')L.push(['--nc','No corresponde']);
@@ -347,10 +366,40 @@ const kp=(v,l,c='')=>`<div class="kpi ${c}"><div class="v">${v}</div><div class=
 function drawPicker(){
   let h=`<button class="chip ${!filter?'act':''}" data-k="">Todas</button>`;
   GROUPS.forEach(g=>{h+=`<span class="grp">${g}</span>`;ITEMS.filter(it=>it.g===g).forEach(it=>{h+=`<button class="chip ${filter===it.k?'act':''}" data-k="${it.k}">${it.n} <b>${pendCount(it.k)}</b></button>`})});
-  $('picker').innerHTML=h;$('picker').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{filter=b.dataset.k||null;lsSet('filter',filter);renderPlano()});
+  $('picker').innerHTML=h;$('picker').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{filter=b.dataset.k||null;PICK.clear();lsSet('filter',filter);renderPlano()});
 }
 
 /* ---------- panel casa ---------- */
+let PICK=new Set();
+function selMode(){return !!(user&&filter)}
+function houseClick(l){
+  if(selMode()){const s=LOTS[l].s[KIDX[filter]];
+    if(s==='N'){toast('Casa '+l+': esta partida no corresponde');return}
+    PICK.has(l)?PICK.delete(l):PICK.add(l);paint();drawSelbar();return}
+  selectLot(l)}
+function pickMz(m){
+  if(!selMode()){toast(user?'Primero elige una partida arriba para marcar por manzana':'Ingresa con tu PIN y elige una partida para marcar por manzana');return}
+  const i=KIDX[filter];const ls=Object.keys(LOTS).filter(l=>LOTS[l].m===m&&LOTS[l].s[i]!=='N').map(Number);
+  const pend=ls.filter(l=>isPend(LOTS[l].s[i]));const target=pend.length?pend:ls;
+  const all=target.every(l=>PICK.has(l));target.forEach(l=>all?PICK.delete(l):PICK.add(l));paint();drawSelbar();
+  if(!all)toast(m+': '+target.length+' casas seleccionadas'+(pend.length?' (las pendientes)':''))}
+function drawSelbar(){const b=$('selbar');if(!b)return;
+  if(!selMode()){b.hidden=true;if(PICK.size){PICK.clear();paint()}return}
+  b.hidden=false;const it=ALLITEMS[KIDX[filter]];const n=PICK.size;
+  const opts=filter==='cam'?[['C','OK','ok'],['S','Subir','lt'],['B','Bajar','no']]:[['C','✓ Lista','ok'],['F','Falta','no']];
+  b.innerHTML=`<span>Marcar <b>${it.n}</b>: <b>${n}</b> casa${n===1?'':'s'} seleccionada${n===1?'':'s'}</span>`+
+    opts.map(([v,t,c])=>`<button class="btn ${c}" data-v="${v}" ${n?'':'disabled'}>${t}</button>`).join('')+
+    `<button class="btn lt" id="selclr" ${n?'':'disabled'}>Limpiar</button>`+
+    `<span class="selhint">Toca las casas para seleccionarlas, o toca el nombre de una manzana (ej. A-13) para seleccionar todas sus casas pendientes. Para ver el detalle de una casa, vuelve a "Todas".</span>`;
+  b.querySelectorAll('button[data-v]').forEach(x=>x.onclick=()=>applyPick(x.dataset.v));
+  const c=$('selclr');if(c)c.onclick=()=>{PICK.clear();paint();drawSelbar()}}
+async function applyPick(v){
+  const k=filter,i=KIDX[k];const ls=[...PICK].filter(l=>LOTS[l].s[i]!==v&&LOTS[l].s[i]!=='N');
+  PICK.clear();
+  if(!ls.length){paint();drawSelbar();toast('No hay cambios: ya estaban así');return}
+  ls.forEach(l=>{LOTS[l].s[i]=v;PENDING=PENDING.filter(p=>!(p.l==l&&p.k===k));PENDING.push({l,k,v,t:Date.now()})});
+  savePending();renderAll();toast(ls.length+' casa'+(ls.length>1?'s':'')+' marcada'+(ls.length>1?'s':'')+' · enviando al Sheet…');
+  await flushPending()}
 function selectLot(l){sel=l;renderPanel();paint();if(innerWidth<900)$('panel').scrollIntoView({behavior:'smooth'})}
 function renderPanel(){
   const p=$('panel');
@@ -458,11 +507,11 @@ async function cerrarDia(){
 
 /* ---------- login ---------- */
 function openLogin(){$('mlogin').classList.add('show');$('inname').value=lsGet('uname','');$('inpin').value='';$('lmsg').textContent='';setTimeout(()=>$('inname').focus(),50)}
-$('userbtn').onclick=()=>{if(user){user=null;pin=null;$('userbtn').textContent='Ingresar para editar';$('userbtn').classList.remove('on');renderPanel();return}openLogin()};
+$('userbtn').onclick=()=>{if(user){user=null;pin=null;$('userbtn').textContent='Ingresar para editar';$('userbtn').classList.remove('on');renderPanel();drawSelbar();return}openLogin()};
 $('lcancel').onclick=()=>$('mlogin').classList.remove('show');
 $('lok').onclick=async()=>{const n=$('inname').value.trim(),p=$('inpin').value.trim();if(!n||!p){$('lmsg').textContent='Escribe tu nombre y PIN.';return}
   if(!IS_DEMO){$('lmsg').textContent='Verificando…';try{await api({action:'checkPin',pin:p})}catch(e){$('lmsg').textContent=/PIN/.test(e.message)?'PIN incorrecto.':'No hay conexión con el Sheet. Intenta de nuevo en un momento.';return}}
-  user=n;pin=p;lsSet('uname',n);$('mlogin').classList.remove('show');$('userbtn').textContent=n+' · salir';$('userbtn').classList.add('on');renderPanel();updatePendBar();toast('Edición activa');flushPending()};
+  user=n;pin=p;lsSet('uname',n);$('mlogin').classList.remove('show');$('userbtn').textContent=n+' · salir';$('userbtn').classList.add('on');renderPanel();updatePendBar();drawSelbar();toast('Edición activa');flushPending()};
 $('btncerrar').onclick=cerrarDia;
 
 /* ---------- navegación ---------- */
@@ -470,7 +519,7 @@ function go(s){document.querySelectorAll('#tabs button').forEach(b=>b.classList.
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>go(b.dataset.s));
 $('calsel').innerHTML=GROUPS.map(g=>`<optgroup label="${g}">${ITEMS.filter(it=>it.g===g).map(it=>`<option value="${it.k}">${it.n}</option>`).join('')}</optgroup>`).join('');$('calsel').value='niv';
 $('calsel').onchange=drawCal;$('histmode').onchange=drawHist;$('histval').onchange=drawHist;
-function renderPlano(){drawPicker();drawKpis();paint();renderPanel()}
+function renderPlano(){drawPicker();drawKpis();paint();renderPanel();drawSelbar()}
 function renderAll(){renderPlano();drawAvance();drawCal();drawMz();drawHist()}
 
 (async()=>{filter=lsGet('filter',null);if(filter&&!ITEMS.some(it=>it.k===filter))filter=null;drawPlan();
