@@ -96,6 +96,7 @@ select{padding:6px 10px;border:1px solid var(--line);border-radius:6px;backgroun
 .toast.show{display:block}
 .mzcell{cursor:pointer}
 .mzcell:hover{outline:2px solid var(--naranjo)}
+.pendbar{background:#fff4e0;border:1px solid var(--naranjo);border-radius:8px;padding:10px 12px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .note{font-size:.8rem;color:var(--muted);margin-top:8px}
 #tavance a{color:var(--azul);font-weight:600;text-decoration:none;border-bottom:1px dotted var(--naranjo)}
 svg text{font-family:var(--font)}
@@ -116,6 +117,7 @@ svg text{font-family:var(--font)}
   <button data-s="historial">Historial de cierres</button>
 </nav>
 <main>
+  <div id="pendbar" class="pendbar" hidden></div>
   <!-- PLANO -->
   <section class="screen act" id="sc-plano">
     <div class="kpis" id="kpis"></div>
@@ -194,7 +196,10 @@ const HOL=['2026-10-31','2026-11-01','2026-12-08','2026-12-25'];
 const MZORD=['A-1','A-2','A-3','A-4','A-5','A-6','A-7','A-8','A-9','A-10','A-11','A-12','A-13','A-14','A-15'];
 const SEED=[[1,"A-1","CCFSNCCCCCCCCCCCCCC"],[2,"A-1","CCFSNCCCCCCCCCCCCCC"],[3,"A-1","CCFSCCCFCCCCCCCCCCC"],[4,"A-1","CCFSCCCFCCCCCCCCCCC"],[5,"A-1","CCFCFCCFCCCCCCCCCCC"],[6,"A-1","CCFSFCCFCCCCCCCCCCC"],[7,"A-1","CCCCNCCFCCCCCCCCCCC"],[8,"A-1","CCCCNCCFCCCCCCCCCCF"],[9,"A-1","CCFCCCCFCCCCCCCCCCC"],[10,"A-1","CCCCCCCFCCCCFFFCCCC"],[11,"A-1","CCFCCCCFCCCCFFFCCCC"],[12,"A-1","CCFCCCCFCCCCFFFCCCC"],[13,"A-1","CCFCCCCFCCCCFFFCCCC"],[14,"A-1","CCFCCCCFCCCCFFFCCCF"],[15,"A-1","CCFCCCCFCCCCFFFCCFF"],[16,"A-1","CCFCCCCFCCCCFFFCCFF"],[17,"A-1","CCFCNCCFCCCCFFFCCFC"],[18,"A-1","CCFCNCCFCCCCFFFCCFC"],[19,"A-2","FFFCNFCFCCCCFFFCCFC"],[20,"A-2","FFFCNFCFCCCCFFFCCFC"],[21,"A-2","FFFCFFCFCCCCFFFCCCC"],[22,"A-2","FFFSFFCFCCCCFFFCCCC"],[23,"A-2","FFFCFFCFCCCCFFFCCFC"],[24,"A-2","FFFCFFCFCCCCFFFCCCC"],[25,"A-2","FFFCFCCFCCCCFFFCCFF"],[26,"A-2","FFFCFCCFCCCCFFCCCCF"],[27,"A-2","FFFCFCCFCCCCFFFCCCF"],[28,"A-2","FFFCFCCFCCCCFFFCCCF"],[29,"A-2","FFFCFCCFCCCCFFFCCFF"],[30,"A-2","FCFCFCCFCCCCFFFCCFF"],[31,"A-2","FFFSFCCFCCCCFFCFCFF"],[32,"A-2","FFFCFCCFCCCCFFCFCFF"],[33,"A-2","FFFCNFCFCCCCFFFCCCF"],[34,"A-2","FFFBNFCFCCCCFFFCCCC"],[35,"A-2","FCFCNCCFCCCCFFFCCCC"],[36,"A-2","FFFCNCCFCCCCFFFCCFC"],[37,"A-2","CFFCFCFFCCCCFFFFCFF"],[38,"A-2","FFFCFCFFCCCCFFCFCFF"],[39,"A-2","FFFCFCFFCCCCFFFFCFF"],[40,"A-2","CCFCFCFFCCCCFFFFCFF"],[41,"A-2","FFFCNCFFCCCCFFFFCFF"],[42,"A-2","FFFCNCFFCCCCFFFFCFF"],[43,"A-3","FCFSNCFFCCCCCCCCFFF"],[44,"A-3","FCFSNCFFCCCCFFFFFFF"],[45,"A-3","FFFCFCFFCCCCFFFCCFF"],[46,"A-3","FFFCFCFFCCCCFFFCCFF"],[47,"A-3","FFFCFCFFCCCCFFFFCFF"],[48,"A-3","FFFCFCFFCCCCFFFFCFF"],[49,"A-3","FFFCNCFFCCCCFFFFFFF"],[50,"A-3","FFFCNCFFCCCCFFFFFFF"],[51,"A-13","CCCCNCCFCCCCCCCCCCC"],[52,"A-13","CCCCNCCCCCCCCCCCCCC"],[53,"A-13","CCFCNCCCCCCCCCCCCCC"],[54,"A-13","CCCCNCCCCCCCCCCCCCC"],[55,"A-13","CCFCNCCFCCCCCCCCCCC"],[56,"A-13","CCFCNCCCCCCCCCCCCCC"],[57,"A-13","CCFCNCCCCCCCCCCCCCC"],[58,"A-13","CCFCNCCCCCCCFFCCCCC"],[59,"A-13","CCFCCCCCCCCCFFCCCCC"],[60,"A-13","CCCCCCCCCCCCFFCCCCC"],[61,"A-13","CCFCNCCFCCCCFFFCCCC"],[62,"A-13","CCFCNCCFCCCCFFFCCCC"],[63,"A-13","CCFCNCCFCCCCFFCCCCC"],[64,"A-13","CCFCNCCFCCCCFFFCCCC"],[65,"A-13","CCFCNCCCCCCCFFCCCCC"],[66,"A-13","CCCCNCCCCCCCCFCCCCC"],[67,"A-13","CCCCNCCFCCCCCCCCCCC"],[68,"A-13","CCCCNCCCCCCCCCCCCCC"],[69,"A-13","CCCCNCCFCCCCCCCCCCC"],[70,"A-13","CCCCNCCFCCCFCCFCCCC"],[71,"A-12","CCFCNCCFCCCCCCCCCCC"],[72,"A-12","CCFCNCCFCCCCCCCCCCC"],[73,"A-12","CCFCNCCFCCCCCCCCCCC"],[74,"A-12","CCFCNCCFCCCCCCCCCCC"],[75,"A-12","CCFCNCCCCCCCCCCCCCC"],[76,"A-12","CCFCNCCCCCCCCCCCCCC"],[77,"A-12","CCFCNCCCCCCCCCCCCCC"],[78,"A-12","CCFCNCCCCCCCCCCCCCC"],[79,"A-12","CCFCFCCCCCCCFFCCCCC"],[80,"A-12","CCFCFCCCCCCCFFCCCCC"],[81,"A-12","CCFCNCCFCCCCFFCCCCF"],[82,"A-12","CCFCNCCFCCCCFFCCCCC"],[83,"A-12","CCFCNCCFCCCCFFCCCCC"],[84,"A-12","CCFCNCCFCCCCFFCCCFC"],[85,"A-12","CCFCFCCFCCCCFFFCCCC"],[86,"A-12","CCFCFCCFCCCCFFFCCCC"],[87,"A-12","CCCCNCCFCCCCFFCCCCC"],[88,"A-12","CCFCNCCFCCCCFFCCCCC"],[89,"A-12","CCFCNCCFCCCCFFCCCCC"],[90,"A-12","CCFCNCCFCCCCFFCCCCC"],[91,"A-11","CCFCNCCFCCCCFFFCCCC"],[92,"A-11","CCFCNCCFCCCCFFFCCCC"],[93,"A-11","CCFCNCCFCCCCFFFCCCC"],[94,"A-11","CCFCNCCFCCCCFFFCCCC"],[95,"A-11","CCFCNCCFCCCCFFCCCCC"],[96,"A-11","CCFCNCCFCCCCFFCCCCC"],[97,"A-11","CCFCNCCCCCCCFFFCCCC"],[98,"A-11","CCFCNCCFCCCCFFFCCCC"],[99,"A-11","CCFCFCCFCCCCFFFCCCC"],[100,"A-11","CCFCFCCFCCCCFFFCCCC"],[101,"A-11","CCFCNCCFCCCCFFCCCCF"],[102,"A-11","CCFCNCCFCCCCFFFCCCC"],[103,"A-11","CCFCNCCFCCCCFFFCCCC"],[104,"A-11","CCFBNCCFCCCCFFCCCCC"],[105,"A-11","CCCCFCCFCCCCFFFCCFF"],[106,"A-11","CCCBFCCFCCCCFFFCCFF"],[107,"A-11","CCFBNCCCCCCFFFFCCCC"],[108,"A-11","CCCBNCCFCCCFFFFCCCC"],[109,"A-11","CCCBNCCFCCCFFFFCCCC"],[110,"A-11","CCFBNCCFCCCFFFFCCCC"],[111,"A-10","CCFCNCCFCCCFFFFCCFF"],[112,"A-10","CCFCNCCFCCCCFFCCCCF"],[113,"A-10","CCFCNCCFCCCCFFCCCCF"],[114,"A-10","CCFCNCCFFCCFFFFCCFF"],[115,"A-10","CCCBNCCFCCCCFFFCCCC"],[116,"A-10","CCCBNCCFCCCCFFCCCCC"],[117,"A-10","CCFBNCCFCCCFFFFCCCC"],[118,"A-10","CCCBNCCFCCCFFFFCCCC"],[119,"A-10","CCCCNCCFCCCFFFFCCFF"],[120,"A-10","CCFCNCCFCCCFFFFCCCF"],[121,"A-10","CCFCNCCFCCCCFFCCCCC"],[122,"A-10","CCFCNCCFCCCCFFCCCCC"],[123,"A-10","CCFCNCCFCCCCFFCCCFC"],[124,"A-10","CCFCNCCFCCCFFFCCCFC"],[125,"A-10","CCFBFCCFCCCFFFFCCCC"],[126,"A-10","CCFCFCCFCCFFFFFCCFF"],[127,"A-10","CCFCFCCFCCCFFFFCCCC"],[128,"A-10","CCFCFCCFCCCFFFFCCCC"],[129,"A-10","CCFCFCCFCCCCFFFCCCC"],[130,"A-10","CFFCFCCFCCCCFFFCCCC"],[131,"A-9","FFFSNCFFFCCFFFFCCFF"],[132,"A-9","FFFSNCFFCCCCFFFFFFF"],[133,"A-9","FFFSNCFFCCCCFFFCCCC"],[134,"A-9","FFFSNFCFCCCCFFFCCCC"],[135,"A-9","FFFSNFCCCCFFFFFCCCC"],[136,"A-9","FFFSNFCFCCCCFFFCCCC"],[137,"A-9","FFFSNFCFCCCCFFFCCCC"],[138,"A-9","FFFSNFCFCCCCFFFCCCC"],[139,"A-9","FFFSNCCFCCCCFFFCCCC"],[140,"A-9","FFFSFCCFCCCCFFFCCCC"],[141,"A-9","FFFCFCCFCCCCFFFCCCC"],[142,"A-9","FFFCNCCFCCCCFFFCCFF"],[143,"A-9","FFFCNCCCCCCCFFFCCFF"],[144,"A-9","FFFCNCCFCCCCFFFCCFC"],[145,"A-9","FFFSFCCFCCCCFFFCCCC"],[146,"A-9","FFFSFCCFCCCCFFFCCCF"],[147,"A-9","FFFSNCCCCCCCFFCCCCC"],[148,"A-9","FFFSNCCFCCCCFFCCCCC"],[149,"A-9","FFFSNCCCCCFFFFFCCCC"],[150,"A-9","FFFSNCCFCCFFFFFCCCC"],[151,"A-8","FFFBNCCFCCCCCCCFFFF"],[152,"A-8","FFFBNCFFCCCCCCCCCFC"],[153,"A-8","FFFBNCFFCCCCCCCCCFC"],[154,"A-8","FFFBNCCFCCCCFFFCCFC"],[155,"A-8","FFFCNCCFCCCCFFFCCCC"],[156,"A-8","FFFCNCCFCCFFFFFCCCC"],[157,"A-8","FFFCNCCFCCFFFFFCCCC"],[158,"A-8","FFFCNCCFCCCCFFFCCFC"],[159,"A-8","FFFBFCCFCCCCFFFCCFC"],[160,"A-8","FFFCFCCFCCCCFFFFCFF"],[161,"A-8","FFFCNCCFCCCCFFCFCFC"],[162,"A-8","FFFCNCCFCCCCCCCFCFF"],[163,"A-8","FFFCNCCFCCCCFFFFFFC"],[164,"A-8","FFFCNCCFCCCCFFFFFFC"],[165,"A-8","FFFBFFCFFCCFFFFFCFC"],[166,"A-8","FFFBFFCFCCCCFFFCCFF"],[167,"A-8","FFFSNFCFCCCCFFFCCCF"],[168,"A-8","FFFSNFCFCCCCFFFCCCC"],[169,"A-8","FFFCNFCFFFCCFFFCCFC"],[170,"A-8","FFFCNFCFCCCCFFFCCFF"],[171,"A-7","FFFBNCCFCCCFFFFFFFC"],[172,"A-7","FFFCNCFFCCCCFFFFFFF"],[173,"A-7","FFFCNCFFCCCCFFFFCFF"],[174,"A-7","FFFCNCCFCCCFFFFFCFF"],[175,"A-7","FFFCNFCFCCCFFFFCCCC"],[176,"A-7","FFFCNFCFFCCCFFFCCCC"],[177,"A-7","FFFSNFCFCCCCFFFCCCC"],[178,"A-7","FFFSNFCFCCCCFFFCCCC"],[179,"A-7","FFFSFFCFFCCFFFFFCFF"],[180,"A-7","FFFSFFCFFCCFFFFFCFF"],[181,"A-7","FFFCNCCFFCCFFFFFCFF"],[182,"A-7","FFFCNFFFCCCCFFFFCFF"],[183,"A-7","FFFCNCFFCCCCFFFFFFF"],[184,"A-7","FFFCNCFFCCCCFFFFCFF"],[185,"A-7","FFFSFFCFCCCCFFFFCFF"],[186,"A-7","FFFSFFCFCCCCFFFFCFF"],[187,"A-7","FFFCNFCFCCCCFFCCCFF"],[188,"A-7","FFFSNFCFCCCCFFCCCCF"],[189,"A-7","FFFCNFCFCCCCFFFCCCF"],[190,"A-7","FFFCNFCFCCCCFFFCCCC"],[191,"A-6","FFFCNFFFCCCFFFFFCFF"],[192,"A-6","FFFCNFFFCCCCFFFFFFF"],[193,"A-6","FFFCNFFFCCCCFFFFFFF"],[194,"A-6","FFFCNFFFCCCFFFFFCFF"],[195,"A-6","FFFCNFFFCCCCFFFFCFF"],[196,"A-6","FFFCNFCFCCCFFFFFCFF"],[197,"A-6","FFFBNCCFCCCFFFFFCFF"],[198,"A-6","FFFCNCCFCCCFFFFCCCF"],[199,"A-6","FFFCNCCFCCCFFFFFCFF"],[200,"A-6","FFFSNCFFCCCFFFFFCFF"],[201,"A-6","FFFCNFCFCCCFFFFFCFF"],[202,"A-6","FFFCNFFFCCCCFFFFCFF"],[203,"A-6","FFFCNFFFCCCCFFFFCFF"],[204,"A-6","FFFCNFCFCCCFFFFFCFF"],[205,"A-6","FFFCNFCFCCCFFFFFCFF"],[206,"A-6","FFFCNFFFCCCFFFFFCFF"],[207,"A-6","FFFCNFCFCCCFFFFFCFF"],[208,"A-6","FFFCNFCFCCCFFFFFCFF"],[209,"A-6","FFFSNFFFFCCFFFFFCFF"],[210,"A-5","FFFCNFFFCCCCFFFFFFF"],[211,"A-5","FFFCNFFFCCCCFFFFFFF"],[212,"A-5","FFFSNCFFCCCCCFCFFFF"],[213,"A-5","FFFSNCCFCCCCFFFFFFF"],[214,"A-5","FFFBNFCFCCCCFFFFCFF"],[215,"A-5","FFFCNFCFCCCCFFFFCFF"],[216,"A-5","FFFCNFCFCCCCFFFFCFF"],[217,"A-5","FFFCNFCFCCCCFFFFCFF"],[218,"A-5","FFFCNFCFCCCCFFFFCFF"],[219,"A-5","FFFCNFCFCCCCFFCFCFF"],[220,"A-5","FFFCFCCFCCCCFFFFCFF"],[221,"A-5","FFFCFCFFCCCCFFFFCFF"],[222,"A-5","FFFCNFFFCCCCFFFFCFF"],[223,"A-5","FFFCNFFFCCCCFFFFCFF"],[224,"A-5","FFFCNFCFCCCCFFFFCFF"],[225,"A-5","FFFCNFCFCCCCFFFFCFF"],[226,"A-4","FFFCFCFFCCCCFFFFCFF"],[227,"A-4","FFFCFCFFCCCCFFFFCFF"],[228,"A-4","FFFSFCFFCCCCFFFFCFF"],[229,"A-4","FFFCFCFFCCCCFFFFCFF"],[230,"A-4","FFFCFCFFCCCCFFFFCFF"],[231,"A-4","FFFCFCFFCCCCFFFFCFF"],[232,"A-4","FFFCFCFFCCCCFFCFCFF"],[233,"A-4","FFFBFCFFCCCCFFFFCFF"],[234,"A-4","FFFBFCFFCCCCFFFFCFF"],[235,"A-4","FFFBFCFFCCCCFFFFCFF"],[236,"A-4","FFFBFCFFCCCCFFFFCFF"],[237,"A-4","FFFCFCFFCCCCFFCFFFF"],[238,"A-4","FFFCFCFFCCCCFFFFFFF"],[239,"A-4","FFFCFCFFCCCCFFCFCFF"],[240,"A-4","FFFCFCFFCCCCFFFFCFF"],[241,"A-4","FFFSFCFFCCCCFFFFFFF"],[242,"A-4","FFFSFCFFCCCCFFFFCFF"],[243,"A-4","FFFSFCFFCCCCFFFFCFF"],[244,"A-15","FFFCCCFFCCCCFFFFFFF"],[245,"A-15","FFFCCCFFCCCCFFFFFFF"],[246,"A-15","FFFCCCFFCCCCFFFFFFF"],[247,"A-15","FFFCCCFFCCCCFFFFFFF"],[248,"A-15","FFFCCCFFCCCCFFFFCFF"],[249,"A-15","FFFCCCFFCCCCFFFFCFF"],[250,"A-15","FFFCCCFFCCCCFFFFCFF"],[251,"A-15","FFFCCCFFCCCCFFFFCFF"],[252,"A-15","FFFCCFFFCCCCFFFFCFF"],[253,"A-15","FFFCCFFFCCCCCFCCCFC"],[254,"A-15","FFFCCFFFCCCCFFCCCCC"],[255,"A-15","FFFSCFFFCCCCFFCCCFC"],[256,"A-15","FFFCCFFFCCCCFFCCCFC"],[257,"A-15","FFFCCFFFCCCCFFCCCFC"],[258,"A-15","FFFCCFFFCCCCFFCCCCC"],[259,"A-15","FFFCCFFCCCCCFFCCCFC"],[260,"A-15","FFFCCFFFCCCCFFCCCFF"],[261,"A-15","FFFCCFFFCCCCFFCCCFC"],[262,"A-15","FFFCCFFFCCCCFFCCCFC"],[263,"A-15","FFFCCFFFCCCCFFCCCFC"],[264,"A-15","FFFCCFFFCCCCFFCCCFF"],[265,"A-15","FFFCCFFFFFFFFFCFCFC"],[266,"A-14","FFFBCFCFCCCCFFFCCFC"],[267,"A-14","CCFBCFCFCCCCFFCCCCC"],[268,"A-14","CCFCCFCFCCCCFFCCCCC"],[269,"A-14","CCFCCCCFCCCCFFCCCCC"],[270,"A-14","CCFCCCCFCCCCFFCCCCF"],[271,"A-14","CCFCCCCFCCCCFFCCCCF"],[272,"A-14","CCFCCCCFCCCCFFFCCCC"],[273,"A-14","CCFCCCCFCCCCFFFCCCC"],[274,"A-14","FFFCCCCFCCCCFFCCCCC"],[275,"A-14","CCFCCCCFCCCCFFFCCFC"],[276,"A-14","CCFCCCCFCCCCFFFCCFC"],[277,"A-14","CCFCCCCFCCCCFFFCCFC"],[278,"A-14","CCFCCCCFCCCCFFCCCFC"],[279,"A-14","CCFCCCCFCCCCFFCCCCC"],[280,"A-14","CCFCFCCFCCCCFFFCCCC"],[281,"A-14","CCFCFFCFCCCCFFFCCCC"],[282,"A-14","CCFCFFCFCCCCFFFCCFC"],[283,"A-14","FCFCFCCFCCCCFFFCCCC"]];  // [lote, manzana, estados] estados: C completo, F falta, S subir, B bajar, N no corresponde
 
-let LOTS={}, HIST=[], filter=null, sel=null, user=null, pin=null, mode='demo';
+let LOTS={}, HIST=[], filter=null, sel=null, user=null, pin=null, mode='loading';
+const IS_DEMO=!SCRIPT_URL;
+let PENDING=lsGet('pending',[]), flushing=false;
+function savePending(){lsSet('pending',PENDING);updatePendBar()}
 const $=id=>document.getElementById(id);
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2600)}
 const isPend=s=>s==='F'||s==='S'||s==='B';
@@ -203,12 +208,39 @@ function lsGet(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 
 /* ---------- API (GET para evitar CORS, igual que Control de Rs) ---------- */
-async function api(params){
+async function api(params,ms=25000){
   const u=SCRIPT_URL+'?'+new URLSearchParams(params).toString();
-  const r=await fetch(u); const j=await r.json(); if(j.error) throw new Error(j.error); return j;
+  const c=new AbortController(); const tm=setTimeout(()=>c.abort(),ms);
+  try{const r=await fetch(u,{signal:c.signal,cache:'no-store'}); const j=await r.json(); if(j.error) throw new Error(j.error); return j;}
+  catch(e){ if(e.name==='AbortError') throw new Error('sin respuesta del Sheet'); throw e; }
+  finally{clearTimeout(tm)}
+}
+function applyPending(){PENDING.forEach(p=>{if(LOTS[p.l])LOTS[p.l].s[KIDX[p.k]]=p.v})}
+function updatePendBar(){const b=$('pendbar');if(!b)return;const n=PENDING.length;
+  if(!n){b.hidden=true;return}
+  b.hidden=false;
+  b.innerHTML=`<b>${n} cambio${n>1?'s':''} sin enviar al Sheet.</b> `+(user?(flushing?'Enviando…':'<button class="btn or" id="pendgo">Enviar ahora</button>'):'Ingresa con tu PIN para enviarlos.')+(mode!=='live'?' <span class="note">(sin conexión, se reintenta solo)</span>':'');
+  const g=$('pendgo');if(g)g.onclick=flushPending}
+async function flushPending(){
+  if(flushing||!PENDING.length||!user||mode!=='live')return updatePendBar();
+  flushing=true;updatePendBar();let ok=0;
+  while(PENDING.length){const p=PENDING[0];
+    try{await api({action:'setItem',lote:p.l,item:p.k,valor:p.v,pin,user});PENDING.shift();savePending();ok++}
+    catch(e){toast('Se detuvo el envío: '+e.message);break}}
+  flushing=false;updatePendBar();if(ok)toast(ok+' cambio'+(ok>1?'s':'')+' enviado'+(ok>1?'s':'')+' al Sheet');
+}
+function rescueDemo(){ // cambios que quedaron guardados solo en este navegador (versión anterior)
+  const d=lsGet('demo_state',null); if(!d||IS_DEMO) return 0;
+  const seed={};SEED.forEach(([l,m,st])=>seed[l]=st);let n=0;
+  for(const l in d){const st=d[l];if(!seed[l]||!LOTS[l])continue;
+    for(let i=0;i<st.length&&i<ALLITEMS.length;i++){
+      if(st[i]!==seed[l][i] && LOTS[l].s[i]===seed[l][i] && st[i]!=='N'){
+        const k=ALLITEMS[i].k; if(!PENDING.some(p=>p.l==l&&p.k===k)){PENDING.push({l:+l,k,v:st[i],t:Date.now()});n++}}}}
+  try{localStorage.removeItem('demo_state')}catch(e){}
+  savePending(); return n;
 }
 async function loadAll(){
-  if(!SCRIPT_URL || SCRIPT_URL.startsWith('__')){
+  if(IS_DEMO){
     mode='demo'; loadSeed();
     const d=lsGet('demo_state',null); if(d) Object.keys(d).forEach(l=>{if(LOTS[l])LOTS[l].s=d[l].split('')});
     HIST=lsGet('demo_hist',[]);
@@ -219,10 +251,11 @@ async function loadAll(){
     LOTS={}; j.rows.forEach(([l,m,s])=>LOTS[l]={m,s:s.split('')});
     HIST=h.rows||[];
     lsSet('last_state',{rows:j.rows,hist:HIST,t:Date.now()});
-    mode='live'; setSync('on','Sincronizado '+new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}));
+    mode='live'; const rn=rescueDemo(); if(rn) toast(rn+' cambios recuperados de este navegador: ingresa con tu PIN para enviarlos'); applyPending(); setSync('on','Sincronizado '+new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}));
   }catch(e){ mode='err'; const c=lsGet('last_state',null);
-    if(c){LOTS={};c.rows.forEach(([l,m,s])=>LOTS[l]={m,s:s.split('')});HIST=c.hist||[];setSync('err','Sin conexión: mostrando últimos datos guardados')}
-    else{loadSeed();setSync('err','Sin conexión: mostrando levantamiento inicial')} }
+    if(c&&c.rows&&c.rows.length>200){LOTS={};c.rows.forEach(([l,m,s])=>LOTS[l]={m,s:s.split('')});HIST=c.hist||[];setSync('err','Sin conexión con el Sheet: reintentando…')}
+    else{loadSeed();setSync('err','Sin conexión con el Sheet: reintentando…')}
+    applyPending(); }
 }
 function setSync(c,t){$('dot').className='dot '+c;$('synctxt').textContent=t}
 
@@ -343,9 +376,12 @@ function topLots(){return Object.keys(LOTS).sort((a,b)=>lotPend(b)-lotPend(a)).s
 
 async function setItem(l,k,v){
   const i=KIDX[k],prev=LOTS[l].s[i];LOTS[l].s[i]=v;renderAll();
-  if(mode==='demo'){const d={};for(const x in LOTS)d[x]=LOTS[x].s.join('');lsSet('demo_state',d);toast('Guardado (demostración)');return}
-  try{await api({action:'setItem',lote:l,item:k,valor:v,pin,user});toast(`Casa ${l}: ${ALLITEMS[i].n} → ${v==='C'?'lista':v==='F'?'falta':v==='S'?'subir':'bajar'}`)}
-  catch(e){LOTS[l].s[i]=prev;renderAll();toast('No se pudo guardar: '+e.message)}
+  if(IS_DEMO){const d={};for(const x in LOTS)d[x]=LOTS[x].s.join('');lsSet('demo_state',d);toast('Guardado (demostración)');return}
+  const txt=`Casa ${l}: ${ALLITEMS[i].n} → ${v==='C'?'lista':v==='F'?'falta':v==='S'?'subir':'bajar'}`;
+  if(mode!=='live'||PENDING.length){PENDING=PENDING.filter(p=>!(p.l==l&&p.k===k));PENDING.push({l,k,v,t:Date.now()});savePending();toast(txt+' (pendiente de enviar)');flushPending();return}
+  try{await api({action:'setItem',lote:l,item:k,valor:v,pin,user});toast(txt+' · guardado en el Sheet')}
+  catch(e){ if(/PIN|Valor|no corresponde|no encontrado/.test(e.message)){LOTS[l].s[i]=prev;renderAll();toast('No se pudo guardar: '+e.message)}
+    else{PENDING.push({l,k,v,t:Date.now()});savePending();toast(txt+' (sin conexión: se enviará después)')} }
 }
 
 /* ---------- avance ---------- */
@@ -414,7 +450,8 @@ function drawHist(){
 async function cerrarDia(){
   if(!user){openLogin();return}
   const f=today();const pend={};ITEMS.forEach(it=>pend[it.k]=pendCount(it.k));
-  if(mode==='demo'){HIST=HIST.filter(r=>r.fecha!==f);HIST.push({fecha:f,pend,user});lsSet('demo_hist',HIST);toast('Día cerrado (demostración)');renderAll();return}
+  if(PENDING.length){toast('Primero envía los cambios pendientes');return}
+  if(IS_DEMO){HIST=HIST.filter(r=>r.fecha!==f);HIST.push({fecha:f,pend,user});lsSet('demo_hist',HIST);toast('Día cerrado (demostración)');renderAll();return}
   try{await api({action:'cerrarDia',fecha:f,pin,user});const h=await api({action:'getHistorial'});HIST=h.rows||[];toast('Día '+f.split('-').reverse().join('-')+' cerrado');renderAll()}
   catch(e){toast('No se pudo cerrar el día: '+e.message)}
 }
@@ -424,8 +461,8 @@ function openLogin(){$('mlogin').classList.add('show');$('inname').value=lsGet('
 $('userbtn').onclick=()=>{if(user){user=null;pin=null;$('userbtn').textContent='Ingresar para editar';$('userbtn').classList.remove('on');renderPanel();return}openLogin()};
 $('lcancel').onclick=()=>$('mlogin').classList.remove('show');
 $('lok').onclick=async()=>{const n=$('inname').value.trim(),p=$('inpin').value.trim();if(!n||!p){$('lmsg').textContent='Escribe tu nombre y PIN.';return}
-  if(mode!=='demo'){try{await api({action:'checkPin',pin:p})}catch(e){$('lmsg').textContent='PIN incorrecto.';return}}
-  user=n;pin=p;lsSet('uname',n);$('mlogin').classList.remove('show');$('userbtn').textContent=n+' · salir';$('userbtn').classList.add('on');renderPanel();toast('Edición activa')};
+  if(!IS_DEMO){$('lmsg').textContent='Verificando…';try{await api({action:'checkPin',pin:p})}catch(e){$('lmsg').textContent=/PIN/.test(e.message)?'PIN incorrecto.':'No hay conexión con el Sheet. Intenta de nuevo en un momento.';return}}
+  user=n;pin=p;lsSet('uname',n);$('mlogin').classList.remove('show');$('userbtn').textContent=n+' · salir';$('userbtn').classList.add('on');renderPanel();updatePendBar();toast('Edición activa');flushPending()};
 $('btncerrar').onclick=cerrarDia;
 
 /* ---------- navegación ---------- */
@@ -438,11 +475,15 @@ function renderAll(){renderPlano();drawAvance();drawCal();drawMz();drawHist()}
 
 (async()=>{filter=lsGet('filter',null);if(filter&&!ITEMS.some(it=>it.k===filter))filter=null;drawPlan();
   const c=lsGet('last_state',null);
-  if(c&&SCRIPT_URL){LOTS={};c.rows.forEach(([l,m,s])=>LOTS[l]={m,s:s.split('')});HIST=c.hist||[];renderAll();
+  if(c&&c.rows&&c.rows.length>200&&SCRIPT_URL){LOTS={};c.rows.forEach(([l,m,s])=>LOTS[l]={m,s:s.split('')});HIST=c.hist||[];renderAll();
     setSync('','Actualizando… (datos del '+new Date(c.t).toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+')')}
   else{$('panel').innerHTML='<h2>Cargando datos…</h2><p class="sub">Conectando con el Google Sheet. Tarda unos segundos la primera vez.</p>';$('kpis').innerHTML=kp('…','Viviendas')+kp('…','Casas sin pendientes')+kp('…','Trabajos pendientes')+kp('…','Avance')+kp('…','Desvío');document.body.classList.add('loading')}
   await loadAll();document.body.classList.remove('loading');renderAll();
-  if(mode==='live')setInterval(async()=>{try{const j=await api({action:'getState'});LOTS={};j.rows.forEach(([l,m,s])=>LOTS[l]={m,s:s.split('')});renderAll();setSync('on','Sincronizado '+new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}))}catch(e){}},120000)})();
+  updatePendBar();
+  if(!IS_DEMO)setInterval(async()=>{ if(flushing)return;
+    if(mode!=='live'){await loadAll();renderAll();updatePendBar();flushPending();return}
+    try{const j=await api({action:'getState'});LOTS={};j.rows.forEach(([l,m,s])=>LOTS[l]={m,s:s.split('')});applyPending();lsSet('last_state',{rows:j.rows,hist:HIST,t:Date.now()});renderAll();setSync('on','Sincronizado '+new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}))}
+    catch(e){setSync('err','Sin conexión con el Sheet: reintentando…')} },mode==='live'?60000:20000)})();
 </script>
 </body>
 </html>
