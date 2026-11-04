@@ -195,7 +195,17 @@ const ALLITEMS=[
  {k:'htu',n:'Tubo gabinete',g:'Hojalatería'},{k:'hga',n:'Gabinete',g:'Hojalatería'},{k:'htg',n:'Techo gas',g:'Hojalatería'},{k:'htc',n:'Techo cocina',g:'Hojalatería'},
  {k:'gca',n:'Calefont',g:'Gas'},{k:'gga',n:'Gas',g:'Gas'},{k:'gco',n:'Cocina',g:'Gas'},
  {k:'rb1',n:'Lavamanos baño 1',g:'Grifería'},{k:'rb2',n:'Lavamanos baño 2',g:'Grifería'},{k:'rdu',n:'Ducha baño 1',g:'Grifería'},{k:'rco',n:'Cocina',g:'Grifería'},
- {k:'pp1',n:'Pintura ext. 1er piso',g:'Exteriores'},{k:'psi',n:'Pintura siding',g:'Exteriores'},{k:'rsi',n:'Reparación siding',g:'Exteriores'},{k:'des',n:'Desmalezado',g:'Exteriores'}
+ {k:'pp1',n:'Pintura ext. 1er piso',g:'Exteriores'},{k:'psi',n:'Pintura siding',g:'Exteriores'},{k:'rsi',n:'Reparación siding',g:'Exteriores'},{k:'des',n:'Desmalezado',g:'Exteriores'},
+ {k:'hum',n:'Reparación humedades 1er piso',g:'Exteriores'},
+ {k:'sel',n:'Sellos exterior',g:'Exteriores'},
+ {k:'pcp',n:'Perfil encuentro fachada-cierro placa',g:'Exteriores'},
+ {k:'emq',n:'Emboquillado de placa',g:'Exteriores'},
+ {k:'rlg',n:'Radier lavadero y cilindros gas',g:'Exteriores'},
+ {k:'rud',n:'Reparación y limpieza UD',g:'Exteriores'},
+ {k:'lim',n:'Limpieza sin escombros',g:'Exteriores'},
+ {k:'pph',n:'Pintura perfil hojalatería fachada',g:'Hojalatería'},
+ {k:'sat',n:'Sellos hojalatería alta temperatura',g:'Hojalatería'},
+ {k:'pig',n:'Instalación gas pintada',g:'Gas'}
 ];
 const sp=s=>String(s).padEnd(ALLITEMS.length,'F').split('');
 const ITEMS=ALLITEMS.filter(it=>it.g!=='Grifería');
@@ -204,8 +214,8 @@ const VIDX=ITEMS.map(it=>KIDX[it.k]);
 const GROUPS=['Exteriores','Hojalatería','Gas'];
 const label=it=>(it.g==='Exteriores'?'':it.g+' · ')+it.n;
 // Calendario: base = pendientes del levantamiento de Calidad al inicio
-const BASE={"med": 168, "nic": 165, "niv": 262, "cam": 71, "rad": 72, "pas": 78, "lav": 80, "rej": 257, "htu": 10, "hga": 2, "htg": 7, "htc": 44, "gca": 247, "gga": 250, "gco": 189, "rb1": 95, "rb2": 24, "rdu": 147, "rco": 129, "pp1": 258, "psi": 33, "rsi": 24, "des": 183};
-const START={}; ALLITEMS.forEach((it,i)=>START[it.k]= i<8?'2026-10-19':(i>=19?'2026-11-03':'2026-11-09'));
+const BASE={"med": 168, "nic": 165, "niv": 262, "cam": 71, "rad": 72, "pas": 78, "lav": 80, "rej": 257, "htu": 10, "hga": 2, "htg": 7, "htc": 44, "gca": 247, "gga": 250, "gco": 189, "rb1": 95, "rb2": 24, "rdu": 147, "rco": 129, "pp1": 258, "psi": 33, "rsi": 24, "des": 183, "hum": 283, "sel": 283, "pcp": 283, "emq": 283, "rlg": 283, "rud": 283, "lim": 283, "pph": 283, "sat": 283, "pig": 283};
+const START={}; ALLITEMS.forEach((it,i)=>START[it.k]= i<8?'2026-10-19':(i>=23?'2026-11-04':(i>=19?'2026-11-03':'2026-11-09')));
 const GOAL='2026-12-18';
 const GOALTXT='18-12';
 function restDays(){return workdays(today(),GOAL).length}
