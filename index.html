@@ -216,7 +216,7 @@ const SEED=[[1,"A-1","CCFSNCCCCCCCCCCCCCC"],[2,"A-1","CCFSNCCCCCCCCCCCCCC"],[3,"
 
 let LOTS={}, HIST=[], filter=null, sel=null, user=null, pin=null, mode='loading';
 const IS_DEMO=!SCRIPT_URL;
-let PENDING=lsGet('pending',[]), flushing=false, MANY=null;
+let PENDING=lsGet('pending',[]).filter(p=>typeof p.l==='number'||/^\d+$/.test(p.l)), flushing=false, MANY=null;
 function savePending(){lsSet('pending',PENDING);updatePendBar()}
 const $=id=>document.getElementById(id);
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2600)}
@@ -277,7 +277,7 @@ async function loadAll(){
     lsSet('last_state',{rows:j.rows,hist:HIST,t:Date.now()});
     mode='live'; const rn=rescueDemo(); if(rn) toast(rn+' cambios recuperados de este navegador: ingresa con tu PIN para enviarlos'); applyPending(); setSync('on','Sincronizado '+new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}));
   }catch(e){ mode='err'; const c=lsGet('last_state',null);
-    if(c&&c.rows&&c.rows.length>200){LOTS={};c.rows.forEach(([l,m,s])=>LOTS[l]={m,s:sp(s)});HIST=c.hist||[];setSync('err','Sin conexión con el Sheet: reintentando…')}
+    if(c&&c.rows&&c.rows.length>200&&typeof c.rows[0][0]==='number'){LOTS={};c.rows.forEach(([l,m,s])=>LOTS[l]={m,s:sp(s)});HIST=c.hist||[];setSync('err','Sin conexión con el Sheet: reintentando…')}
     else{loadSeed();setSync('err','Sin conexión con el Sheet: reintentando…')}
     applyPending(); }
 }
@@ -527,7 +527,7 @@ function renderAll(){renderPlano();drawAvance();drawCal();drawMz();drawHist()}
 
 (async()=>{filter=lsGet('filter',null);if(filter&&!ITEMS.some(it=>it.k===filter))filter=null;drawPlan();
   const c=lsGet('last_state',null);
-  if(c&&c.rows&&c.rows.length>200&&SCRIPT_URL){LOTS={};c.rows.forEach(([l,m,s])=>LOTS[l]={m,s:sp(s)});HIST=c.hist||[];renderAll();
+  if(c&&c.rows&&c.rows.length>200&&typeof c.rows[0][0]==='number'&&SCRIPT_URL){LOTS={};c.rows.forEach(([l,m,s])=>LOTS[l]={m,s:sp(s)});HIST=c.hist||[];renderAll();
     setSync('','Actualizando… (datos del '+new Date(c.t).toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+')')}
   else{$('panel').innerHTML='<h2>Cargando datos…</h2><p class="sub">Conectando con el Google Sheet. Tarda unos segundos la primera vez.</p>';$('kpis').innerHTML=kp('…','Viviendas')+kp('…','Casas sin pendientes')+kp('…','Trabajos pendientes')+kp('…','Avance')+kp('…','Días hábiles al '+GOALTXT);document.body.classList.add('loading')}
   await loadAll();document.body.classList.remove('loading');renderAll();
